@@ -1,0 +1,26 @@
+body
+{
+    margin: 0;
+    background-color: #f0e2d9;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font-family: "Figtree", sans-serif;
+}
+
+button
+{
+    background-color: black;
+    color: white;
+    font-size: 1.2vw;
+    border: 0;
+    border-radius: 10px;
+    width: max-content;
+    height: max-content;
+    padding-top: .7vw;
+    padding-bottom: .7vw;
+    padding-left: 2vw;
+    padding-right: 2vw;
+    cursor: pointer;
+    font-family: "Figtree", sans-serif;
+}

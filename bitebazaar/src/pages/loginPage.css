@@ -1,0 +1,62 @@
+.loginPageHolder
+{
+    height: 100vh;
+    display: flex;
+}
+
+.loginImage
+{
+    background-image: url("/public/images/login_image.png");
+    background-position: center;
+    background-size: cover;
+    width: 60%;
+    height: 100%;
+}
+
+.loginInfoContainer
+{
+    width: 40%;
+    text-align: center;
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1vw;
+}
+
+.emailandPass form
+{
+    display: flex;
+    flex-direction: column;
+    gap: 2vw;
+}
+
+.email, .password, .name
+{
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+.orText
+{
+    width: 20vw;
+}
+
+.submit
+{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: .3vw;
+}
+
+.changeAuth
+{
+    text-align: center;
+    cursor: pointer;
+    width: max-content;
+    font-size: .8vw;
+}
+

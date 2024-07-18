@@ -1,0 +1,69 @@
+body
+{
+    background-color: #f0e2d9;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font-family: "Figtree", sans-serif;
+    /* justify-content: center; */
+}
+
+.landingPageHolder
+{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* justify-content: center; */
+    gap: 50px;
+}
+
+.landingPageName
+{
+    width: 100%;
+    text-align: center;
+    /* background-color: aqua; */
+    font-family: "Playwrite CU", cursive;
+    font-weight: 400;
+}
+
+
+
+.landingPageTag
+{
+    /* background-color: blueviolet; */
+    text-align: center;
+}
+.landingPageTagText
+{
+    color: black;
+}
+
+.landingPageTagLarge
+{
+    font-size: 4vw;
+    font-weight: 800;
+}
+
+.landingPageTagSmall
+{
+    font-size: 1.5vw;
+    font-weight: 500;
+}
+
+.landingPageLogin
+{
+    /* background-color: blue; */
+    text-align: center;
+}
+
+.backgroundImage
+{
+    /* background-color: rgb(111, 151, 186); */
+    width: 300px;
+    height: 300px;
+    background-image: url("/public/images/download.png");
+    background-position: center;
+    background-size: cover;
+}
+
+

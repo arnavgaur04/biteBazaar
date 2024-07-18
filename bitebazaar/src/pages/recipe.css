@@ -1,0 +1,39 @@
+.recipeHolder
+{
+    display: flex;
+    flex-direction: column;
+    /* justify-content: center; */
+    align-items: center;
+    text-align: center;
+    gap: 50px;
+    padding: 50px;
+}
+
+.recipeImage
+{
+    width: 95%;
+    border-radius: 15px;
+    height: 320px;
+    background-image: url("/public/images/recipe_image.jpg");
+    background-position: center;
+    background-size: cover;
+}
+
+.recipeActions
+{
+    display: flex;
+    justify-content: center;
+    /* align-items: center; */
+    gap: 2vw;
+    padding: 10px;
+    width: 100%;
+}
+
+.recipeActionsItems
+{
+    height: 50px;
+    width: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
