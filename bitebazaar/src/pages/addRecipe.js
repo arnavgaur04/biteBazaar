@@ -220,6 +220,7 @@ function PostRecipe() {
             // const mountainsRef = ref(storage, ima);
             console.log(img);
             console.log("data inserted");
+            alert("posted");
           }
         }
       }

@@ -39,6 +39,7 @@ function LoginPage() {
         })
         .catch((error) => {
           console.error('Error updating display name:', error);
+          alert(error);
         });
       }
 
@@ -51,6 +52,7 @@ function LoginPage() {
             setCurUser(user);
         } catch(error) {
             console.error(error);
+            alert(error);
         }
     }
     
@@ -66,6 +68,7 @@ function LoginPage() {
         catch(err)
         {
             console.log(err);
+            alert(err);
         }
     }
 
@@ -80,6 +83,7 @@ function LoginPage() {
             setCurUser(result.user);
         }).catch((error) => {
             console.log(error);
+            alert(error);
         });
     }
 
