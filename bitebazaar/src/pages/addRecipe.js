@@ -1,8 +1,10 @@
-import { useNavigate } from 'react-router-dom';
 import './addRecipe.css';
 import React, { useEffect, useRef, useState } from 'react';
-import { PlusOutlined } from '@ant-design/icons';
-import { Flex, Input, Tag, theme, Tooltip, List, Image, Upload, Button } from 'antd';
+import { PlusOutlined, UploadOutlined } from '@ant-design/icons';
+import { Flex, Input, Tag, theme, Tooltip, List, Image, Upload, Button, message, Alert } from 'antd';
+import { doc, setDoc } from "firebase/firestore";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { db } from './firebase-config';
 
 const { TextArea } = Input;
 
@@ -13,9 +15,8 @@ const tagInputStyle = {
   verticalAlign: 'top',
 };
 
-const PostTags = () => {
+const PostTags = ({ tags, setTags }) => {
   const { token } = theme.useToken();
-  const [tags, setTags] = useState([]);
   const [inputVisible, setInputVisible] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [editInputIndex, setEditInputIndex] = useState(-1);
@@ -131,60 +132,158 @@ const PostTags = () => {
   );
 };
 
-function PostRecipe()
-{
-    var user = localStorage.getItem('user');
-    const [value, setValue] = useState('');
+function PostRecipe() {
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    tags: [],
+    directions: [],
+    ingredients: [],
+    images: [],
+  });
 
-    if(user == "null")
-        user = null;
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
+    if(formData.ingredients.length == 0)
+    {
+      alert("Add Ingredients");
+    }
+
     else
-        user = JSON.parse(user);
+    {
+      if(formData.title == "")
+        alert("Add title");
+      
+      else
+      {
+        if(formData.directions.length == 0)
+          alert("Add Instructions");
+    
+        else
+        {
+          var c = 0;
+          for(var i = 0; i < formData.directions.length; i++)
+          {
+            if(formData.directions[i].heading == "" || formData.directions[i].heading.description == "")
+            {
+              c++;
+              alert("Enter Instructions properly");
+            }
+          }
 
-    return (
-            <div className='addPost'>
-                <div className='addPostLeft'>
-                    <div className='postHeadingContainer'>
-                        <div className='postHeading'>
-                            Title
-                            <Input style={{backgroundColor: 'transparent', color: 'black', borderColor: 'black'}} placeholder="Title" />
-                        </div>
-                        <div className='postHeadingDesc'>
-                                Description
-                                <TextArea
-                                    style={{backgroundColor: 'transparent', color: 'black', borderColor: 'black'}}
-                                    value={value}
-                                    onChange={(e) => setValue(e.target.value)}
-                                    placeholder="Description"
-                                    autoSize={{
-                                    minRows: 3,
-                                    maxRows: 5,
-                                    }}
-                                />
-                        </div>
-                        <div className='postTags'>
-                            Add tags
-                            <PostTags />
-                        </div>
-                    </div>
+          if(c == 0)
+          {
+            var user = localStorage.getItem('user');
+            user = JSON.parse(user);
+            var uid;
 
-                    <PostDirections />
-                </div>
+            if(user.uid != undefined)
+              uid = user.uid;
 
-                <div className='addPostRight'>
-                        <AddRows />
-                        <AddImage />
-                </div>
+            else
+              uid = user.user.uid;
+
+            var ing = [];
+
+            for(var i = 0; i < formData.ingredients.length; i++)
+            {
+              ing.push(formData.ingredients[i].value);
+            }
+
+            await setDoc(doc(db, "users", uid, "posts", formData.title), {
+              description: formData.description,
+              directions: formData.directions,
+              images: formData.images,
+              ingredients: ing,
+              tags: formData.tags,
+              title: formData.title,
+              uid: uid,
+              type: "post"
+            });
+
+            for(var i = 0; i < formData.tags.length; i++)
+            {
+              await setDoc(doc(db, "tags", formData.tags[i], uid, formData.title), {
+                description: formData.description,
+                directions: formData.directions,
+                images: formData.images,
+                ingredients: ing,
+                tags: formData.tags,
+                title: formData.title,
+                uid: uid
+              });
+
+              console.log("data inserted to tag");
+            }
+            
+            const storage = getStorage();
+            // const mountainsRef = ref(storage, ima);
+            console.log(img);
+            console.log("data inserted");
+          }
+        }
+      }
+    }
+
+    console.log('Collected Form Data:', formData);
+  };
+
+  return (
+    <form onSubmit={handleFormSubmit}>
+      <div className='addPost'>
+        <div className='addPostLeft'>
+          <div className='postHeadingContainer'>
+            <div className='postHeading'>
+              Title
+              <Input
+                style={{ backgroundColor: 'transparent', color: 'black', borderColor: 'black' }}
+                placeholder="Title"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              />
             </div>
-    )
+            <div className='postHeadingDesc'>
+              Description
+              <TextArea
+                style={{ backgroundColor: 'transparent', color: 'black', borderColor: 'black' }}
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="Description"
+                autoSize={{ minRows: 3, maxRows: 5 }}
+              />
+            </div>
+            <div className='postTags'>
+              Add tags
+              <PostTags
+                tags={formData.tags}
+                setTags={(newTags) => setFormData({ ...formData, tags: newTags })}
+              />
+            </div>
+          </div>
+
+          <PostDirections
+            directions={formData.directions}
+            setDirections={(newDirections) => setFormData({ ...formData, directions: newDirections })}
+          />
+        </div>
+
+        <div className='addPostRight'>
+          <AddRows
+            ingredients={formData.ingredients}
+            setIngredients={(newIngredients) => setFormData({ ...formData, ingredients: newIngredients })}
+          />
+          <AddImage
+            // images={formData.images}
+            setImages={(newImages) => setFormData({ ...formData, images: newImages })}
+          />
+        </div>
+      </div>
+      <Button type='primary' htmlType='submit'>Submit</Button>
+    </form>
+  )
 }
 
-
-function PostDirections() {
-  const [directions, setDirections] = useState([
-    { stepNumber: 1, heading: '', description: '' },
-  ]);
-
+function PostDirections({ directions, setDirections }) {
   const addDirection = () => {
     const newDirection = {
       stepNumber: directions.length + 1,
@@ -207,7 +306,7 @@ function PostDirections() {
   };
 
   const removeDirection = (index) => {
-    if (directions.length > 1) { // Prevent removing the only direction
+    if (directions.length > 1) {
       const updatedDirections = [...directions];
       updatedDirections.splice(index, 1);
       setDirections(updatedDirections);
@@ -216,97 +315,96 @@ function PostDirections() {
 
   return (
     <div className='postDirectionsHolderHolder'>
-        <div className='postDirectionsHolder'>
+      <div className='postDirectionsHolder'>
         {directions.map((direction, index) => (
-            <div className='postDirections' key={index}>
+          <div className='postDirections' key={index}>
             <div className='postDirectionsHeadingHolder'>
-                <div>
-                {index+1}.
-                </div>
-                <div className='postDirectionsHeading'>
+              <div>
+                {index + 1}.
+              </div>
+              <div className='postDirectionsHeading'>
                 <Input
-                    style={{ backgroundColor: 'transparent', color: 'black', borderColor: 'black' }}
-                    placeholder="Step heading"
-                    value={direction.heading}
-                    onChange={(e) => handleHeadingChange(index, e)}
+                  style={{ backgroundColor: 'transparent', color: 'black', borderColor: 'black' }}
+                  placeholder="Step heading"
+                  value={direction.heading}
+                  onChange={(e) => handleHeadingChange(index, e)}
                 />
-                </div>
-                    <Button type='primary' onClick={() => removeDirection(index)} danger>x</Button>
+              </div>
+              <Button type='primary' onClick={() => removeDirection(index)} danger>x</Button>
             </div>
             <div className='postDirectionsDescription'>
-                <TextArea
+              <TextArea
                 style={{ backgroundColor: 'transparent', color: 'black', borderColor: 'black' }}
                 value={direction.description}
                 onChange={(e) => handleDescriptionChange(index, e)}
                 placeholder="Describe step"
                 autoSize={{ minRows: 3, maxRows: 5 }}
-                />
+              />
             </div>
-                
-            </div>
+          </div>
         ))}
-        </div>
-        <Button type='primary' onClick={addDirection}>Add Direction</Button>
+      </div>
+      <Button type='primary' onClick={addDirection}>Add Direction</Button>
     </div>
   );
 }
 
-function AddRows() {
-    const [items, setItems] = useState([]);
-    const [val, setVal] = useState("");
-  
-    const addItem = () => {
-        if(val != "")
-            setItems([...items, { value: val, id: Math.random().toString(36).substring(2, 15) }]);
-        else
-            alert("Cannot be empty");
-    };
-  
-    const removeItem = (id) => {
-      setItems(items.filter((item) => item.id !== id));
-    };
-  
-    const handleChange = (event, index) => {
-      const updatedItems = [...items];
-      updatedItems[index].value = event.target.value;
-      setItems(updatedItems);
-    };
-  
-    return (
-      <div className='IngHolder'>
-        <div>
-            Ingredients
-        </div>
-        <List
-        style={{backgroundColor: 'transparent', color: 'black', borderColor: 'black'}}
+function AddRows({ ingredients, setIngredients }) {
+  const [val, setVal] = useState("");
+
+  const addItem = () => {
+    if (val !== "") {
+      setIngredients([...ingredients, { value: val, id: Math.random().toString(36).substring(2, 15) }]);
+      setVal('');
+    } else {
+      alert("Cannot be empty");
+    }
+  };
+
+  const removeItem = (id) => {
+    setIngredients(ingredients.filter((item) => item.id !== id));
+  };
+
+  const handleChange = (event, index) => {
+    const updatedItems = [...ingredients];
+    updatedItems[index].value = event.target.value;
+    setIngredients(updatedItems);
+  };
+
+  return (
+    <div className='IngHolder'>
+      <div>Ingredients</div>
+      <List
+        style={{ backgroundColor: 'transparent', color: 'black', borderColor: 'black' }}
         className='IngList'
         bordered
-        dataSource={items}
+        dataSource={ingredients}
         renderItem={(item, index) => (
-            <List.Item className='IngListItems' key={item.id}>
-                <div className='postIngIndex'>
-                    {index}
-                </div>
-
-                <div className='postIngName'>
-                    {item.value}
-                </div>
-
-                <Button onClick={() => removeItem(item.id)} type="primary" danger>x</Button>
-            </List.Item>
+          <List.Item className='IngListItems' key={item.id}>
+            <div className='postIngIndex'>
+              {index+1}
+            </div>
+            <div className='postIngName'>
+              {item.value}
+            </div>
+            <Button onClick={() => removeItem(item.id)} type="primary" danger>x</Button>
+          </List.Item>
         )}
+      />
+      <div className='postIngToBeAdded'>
+        <Input
+        placeholder='add ingredient'
+          style={{ backgroundColor: 'transparent', borderColor: 'black' }}
+          value={val}
+          onChange={(e) => setVal(e.target.value)}
         />
-        <div className='postIngToBeAdded'>
-            <Input style={{backgroundColor: 'transparent', borderColor: 'black'}} onChange={(e)=>setVal(e.target.value)}/>
-        </div>
-        <div className='addIngBtnHolder'>
-            <Button type='primary' onClick={addItem}>+</Button>
-        </div>
       </div>
-    );
+      <div className='addIngBtnHolder'>
+        <Button type='primary' onClick={addItem}>+</Button>
+      </div>
+    </div>
+  );
 }
-
-
 
 const getBase64 = (file) =>
   new Promise((resolve, reject) => {
@@ -316,83 +414,207 @@ const getBase64 = (file) =>
     reader.onerror = (error) => reject(error);
   });
 
-const AddImage = () => {
-  const [previewOpen, setPreviewOpen] = useState(false);
-  const [previewImage, setPreviewImage] = useState('');
+var img = [];
+
+// const AddImage = ({ images }) => {
+//   const [previewOpen, setPreviewOpen] = useState(false);
+//   const [previewImage, setPreviewImage] = useState('');
+//   const [fileList, setFileList] = useState(images || []);
+//   const handlePreview = async (file) => {
+//     if (!file.url && !file.preview) {
+//       file.preview = await getBase64(file.originFileObj);
+//     }
+//     setPreviewImage(file.url || file.preview);
+//     setPreviewOpen(true);
+//   };
+//   const handleChange = ({ fileList: newFileList }) => setFileList(newFileList);
+  
+//   const uploadButton = (
+//     <button
+//       style={{
+//         border: 0,
+//         background: 'none',
+//         color: 'black'
+//       }}
+//       type="button"
+//     >
+//       <PlusOutlined />
+//       <div style={{ marginTop: 8 }}>
+//         Upload
+//       </div>
+//     </button>
+//   );
+
+//   return (
+//     <div className='uploadImage'>
+//       <Upload
+//         action="https://660d2bd96ddfa2943b33731c.mockapi.io/api/upload"
+//         listType="picture-card"
+//         fileList={fileList}
+//         onPreview={handlePreview}
+//         onChange={handleChange}
+//       >
+//         {fileList.length >= 8 ? null : uploadButton}
+//       </Upload>
+//       {previewImage && (
+//         <Image
+//           wrapperStyle={{ display: 'none' }}
+//           preview={{
+//             visible: previewOpen,
+//             onVisibleChange: (visible) => setPreviewOpen(visible),
+//             afterOpenChange: (visible) => !visible && setPreviewImage(''),
+//           }}
+//           src={previewImage}
+//         />
+//       )}
+//     </div>
+//   );
+// };
+
+// const AddImage = () => {
+//   const [fileList, setFileList] = useState([]);
+//   const [uploading, setUploading] = useState(false);
+//   const handleUpload = () => {
+//     const formData = new FormData();
+//     fileList.forEach((file) => {
+//       formData.append('files[]', file);
+//       img.push(file);
+//     });
+//   };
+//   const props = {
+//     onRemove: (file) => {
+//       const index = fileList.indexOf(file);
+//       const newFileList = fileList.slice();
+//       newFileList.splice(index, 1);
+//       setFileList(newFileList);
+//     },
+//     beforeUpload: (file) => {
+//       setFileList([...fileList, file]);
+//       return false;
+//     },
+//     fileList,
+//   };
+//   return (
+//     <>
+//       <Upload {...props}>
+//         <Button icon={<UploadOutlined />}>Select File</Button>
+//       </Upload>
+//       <Button
+//         type="primary"
+//         onClick={handleUpload}
+//         disabled={fileList.length === 0}
+//         loading={uploading}
+//         style={{
+//           marginTop: 16,
+//         }}
+//       >
+//         {uploading ? 'Uploading' : 'Start Upload'}
+//       </Button>
+//     </>
+//   );
+// };
+
+const AddImage = ({ setImages }) => {
   const [fileList, setFileList] = useState([]);
-  const handlePreview = async (file) => {
-    if (!file.url && !file.preview) {
-      file.preview = await getBase64(file.originFileObj);
+  const [uploading, setUploading] = useState(false);
+
+  const storage = getStorage();
+
+  // Upload file function
+  const handleUpload = async () => {
+    if (fileList.length === 0) {
+      message.warning('No files selected.');
+      return;
     }
-    setPreviewImage(file.url || file.preview);
-    setPreviewOpen(true);
+
+    setUploading(true);
+
+    try {
+      // Create an array of promises for uploading files
+      var user = localStorage.getItem('user');
+      user = JSON.parse(user);
+      user = user.user;
+      console.log(user);
+      var uid = user.uid;
+
+      const uploadPromises = fileList.map(file => {
+        const storageRef = ref(storage, `images/${uid}/images/${file.name}`);
+        return uploadBytes(storageRef, file).then(snapshot => {
+          return getDownloadURL(snapshot.ref); // Get the URL of the uploaded file
+        });
+      });
+
+      // Wait for all uploads to complete
+      const uploadedFileUrls = await Promise.all(uploadPromises);
+      
+      // Update the parent component with the URLs of the uploaded images
+      setImages(uploadedFileUrls);
+      message.success('Upload successful.');
+    } catch (error) {
+      message.error('Upload failed.');
+    } finally {
+      setUploading(false);
+      setFileList([]); // Clear the file list after upload
+    }
   };
-  const handleChange = ({ fileList: newFileList }) => setFileList(newFileList);
-  const uploadButton = (
-    <button
-      style={{
-        border: 0,
-        background: 'none',
-        color: 'black'
-      }}
-      type="button"
-    >
-      <PlusOutlined />
-      <div
-        style={{
-          marginTop: 8,
-        }}
-      >
-        Upload
-      </div>
-    </button>
-  );
+
+  // Handle file change event
+  const handleChange = ({ file, fileList: newFileList }) => {
+    if (file.status === 'done') {
+      message.success(`${file.name} file uploaded successfully.`);
+    } else if (file.status === 'error') {
+      message.error(`${file.name} file upload failed.`);
+    }
+    setFileList(newFileList);
+  };
+
+  // Properties for the Upload component
+  const uploadProps = {
+    onRemove: (file) => {
+      setFileList(prevFileList => prevFileList.filter(item => item.uid !== file.uid));
+    },
+    beforeUpload: (file) => {
+      setFileList(prevFileList => [...prevFileList, file]);
+      return false; // Prevent automatic upload
+    },
+    fileList,
+  };
 
   return (
-    <div className='uploadImage'>
+    <div className='uploadBtns'>
       <Upload
-        action="https://660d2bd96ddfa2943b33731c.mockapi.io/api/upload"
-        listType="picture-card"
+        {...uploadProps}
+        listType="picture"
         fileList={fileList}
-        onPreview={handlePreview}
         onChange={handleChange}
       >
-        {fileList.length >= 8 ? null : uploadButton}
+        <Button type='primary' icon={<UploadOutlined />}>Select File</Button>
       </Upload>
-      {previewImage && (
-        <Image
-          wrapperStyle={{
-            display: 'none',
-          }}
-          preview={{
-            visible: previewOpen,
-            onVisibleChange: (visible) => setPreviewOpen(visible),
-            afterOpenChange: (visible) => !visible && setPreviewImage(''),
-          }}
-          src={previewImage}
-        />
-      )}
+      <Button
+        type="primary"
+        onClick={handleUpload}
+        disabled={fileList.length === 0}
+        loading={uploading}
+        style={{ marginTop: 16 }}
+      >
+        {uploading ? 'Uploading' : 'Start Upload'}
+      </Button>
     </div>
   );
 };
 
 function AddRecipe() {
-    var user = localStorage.getItem('user');
+  var user = localStorage.getItem('user');
+  if (user == "null") user = null;
+  else user = JSON.parse(user);
 
-    if(user == "null")
-        user = null;
-    else
-        user = JSON.parse(user);
-  
-    return (
-      user ? (
-        <PostRecipe />
-      ) : (
-        <>
-            navigate('/home')
-        </>
-      )
-    );
-  }
+  return (
+    user ? (
+      <PostRecipe />
+    ) : (
+      <>home</>
+    )
+  );
+}
 
 export default AddRecipe;

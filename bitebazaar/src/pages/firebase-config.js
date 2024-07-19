@@ -1,6 +1,8 @@
 // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
+import { getApp, initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 // import { getAnalytics } from "firebase/analytics";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -20,5 +22,9 @@ const firebaseConfig = {
 //auth using email and Password
 
 const app = initializeApp(firebaseConfig);
+const firebaseApp = getApp();
+
+export const storage = getStorage(firebaseApp, "gs://bitebazaar-ddfe0.appspot.com");
 export const auth = getAuth(app);
+export const db = getFirestore(app);
 // const analytics = getAnalytics(app);

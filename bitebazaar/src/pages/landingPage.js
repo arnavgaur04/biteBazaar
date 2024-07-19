@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Button } from 'antd'
 import './landingPage.css'
 
 function LandingPage() {
@@ -20,7 +21,7 @@ function LandingPage() {
             </div>
 
             <div className='landingPageLogin'>
-                <Link to="/login"><button>Login</button></Link>
+                <Link to="/login"><Button type="primary">Login</Button></Link>
             </div>
         </div>
     )

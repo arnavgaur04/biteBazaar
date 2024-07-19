@@ -8,6 +8,7 @@ import LoginPage from './pages/loginPage';
 import Home from './pages/home';
 import Recipe from './pages/recipe';
 import AddRecipe from './pages/addRecipe';
+import Profile from './pages/profile';
 import NoPage from './pages/noPage';
 import reportWebVitals from './reportWebVitals';
 
@@ -19,8 +20,9 @@ root.render(
             <Route index element={<LandingPage />} />
             <Route path="login" element={<LoginPage />} />
             <Route path="home" element={<Home />} />
-            <Route path="recipe" element={<Recipe />} />
+            <Route path="post/:id/:id" element={<Recipe />} />
             <Route path="add" element={<AddRecipe />} />
+            <Route path="profile" element={<Profile />} />
             <Route path="*" element={<NoPage />} />
           </Route>
         </Routes>

@@ -1,0 +1,33 @@
+.profileHolder
+{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 3vw;
+    min-height: 100vh;
+}
+
+.profileNameHolder
+{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2vw;
+}
+.listItems
+{
+    display: flex;
+    justify-content: center;
+    gap: 2vw;
+}
+
+.profileLiked, .profileSaved
+{
+    display: flex;
+    flex-direction: column;
+    gap: 1vw;
+}
+
+
+
